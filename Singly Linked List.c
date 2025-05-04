@@ -7,83 +7,67 @@ typedef struct node {
 } node;
 
 typedef struct list {
-    node *n;
+    int size;
+    node *header;
 } list;
 
+node* newNode(char val) {
+    node *n = (node*)malloc(sizeof(node));
+    n->val=val;
+    n->next = NULL;
+    return n;
+}
+
+list* newList() {
+    list *l = (list*)malloc(sizeof(list));
+    l->size=0;
+    l->header = newNode(0);
+}
+
 void insert(list* l, int pos, char val) {
-    node *newNode = (node*)malloc(sizeof(node));
-    newNode->next=NULL;
-    newNode->val=val;
-    
-    if(pos==1) {
-        newNode->next=l->n;
-        l->n=newNode;
-    } else {
-        node *n = l->n;
-        while(pos-->2) {
-            if(!n || !n->next) {
-                printf("invalid position\n");
-                free(newNode);
-                return;
-            }
-            n = n->next;
-        }
-        newNode->next = n->next;
-        n->next = newNode;
+    if(l->size+1<pos) {
+        printf("invalid position\n");
+        return;
     }
+    node *n = newNode(val);
+    l->size++;
+
+    node *cur = l->header;
+    while(pos-->1) cur = cur->next;
+    n->next = cur->next;
+    cur->next = n;
 }
 
 void search(list *l, int pos) {
-    if(!l->n) {
+    if(l->size<pos) {
         printf("invalid position\n");
         return;
     }
     
-    node *n = l->n;
-    while(pos-->1) {
-        if(!n->next) {
-            printf("invalid position\n");
-            return;
-        }
-        n = n->next;
-    }
-    printf("%c\n", n->val);
+    node *cur = l->header;
+    while(pos-->0) cur = cur->next;
+    printf("%c\n", cur->val);
 }
 
 void del(list *l, int pos) {
-    if(!l->n) {
+    if(l->size<pos) {
         printf("invalid position\n");
         return;
     }
-    
-    node *delNode;
-    if(pos==1) {
-        delNode = l->n;
-        l->n = l->n->next;
-    } else {
-        node *n = l->n;
-        while(pos-->2) {
-            if(!n->next) {
-                printf("invalid position\n");
-                return;
-            }
-            n = n->next;
-        }
-        if(!n->next) {
-            printf("invalid position\n");
-            return;
-        }
-        delNode = n->next;
-        n->next = n->next->next;
-    }
+    l->size--;
+
+    node *cur = l->header;
+    while(pos-->1) cur = cur->next;
+    node *delNode = cur->next;
+    cur->next = cur->next->next;
     free(delNode);
 }
 
 void print(list *l) {
-    node *n = l->n;
-    while(n) {
-        printf("%c", n->val);
+    node *n = l->header;
+    while(n->next) {
         n = n->next;
+        printf("%c", n->val);
     }
     printf("\n");
 }
@@ -93,9 +77,13 @@ void freeNode(node *n) {
     free(n);
 }
 
+void freeList(list *l) {
+    freeNode(l->header);
+    free(l);
+}
+
 int main(){
-    list *l = (list*)malloc(sizeof(list));
-    l->n = NULL;
+    list *l = newList();
     
     int n; scanf("%d", &n);
     while(n--) {
@@ -114,8 +102,7 @@ int main(){
             }
         }
     }
-    if(l->n) freeNode(l->n);
-    free(l);
+    freeList(l);
 }
 
 /*
